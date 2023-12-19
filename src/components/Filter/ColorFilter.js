@@ -1,16 +1,16 @@
+import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import React, { useState } from 'react';
 import { setColorFilterAction } from '../../store/filter/filterSlice';
 import { DEFAULT_COLOR } from '../../constans/ColorConstans';
-import { contactsSelector } from '../../store/contacts/contactsSelectors';
 
+import { filterSelector } from '../../store/filter/filterSelector';
+import { contactsSelectors } from '../../store/contacts/contactsSelectors';
 import style from './Filter.module.css';
 
 const ColorFilter = () => {
   const dispatch = useDispatch();
-  const { contacts } = useSelector(contactsSelector);
-
-  const [activeColor, setActiveColor] = useState('');
+  const contacts = useSelector(contactsSelectors.sortedContacts);
+  const { colorFilter } = useSelector(filterSelector);
 
   const uniqueColors = [...new Set(contacts.map(contact => contact.color))];
 
@@ -20,13 +20,12 @@ const ColorFilter = () => {
 
   const makeActiveButtonClass = color => {
     const buttonClass = [style.colorFilterButton];
-    activeColor === color && buttonClass.push(style.active);
+    colorFilter === color && buttonClass.push(style.active);
     return buttonClass.join(' ');
   };
 
   const handleColorFilter = event => {
     const selectedColor = event.currentTarget.value;
-    setActiveColor(selectedColor);
     dispatch(setColorFilterAction(selectedColor));
   };
 

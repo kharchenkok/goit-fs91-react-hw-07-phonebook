@@ -1,18 +1,31 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { deleteContactAction } from '../../store/contacts/contactsSlice';
+
 import { BiSolidUserRectangle, BiPhone } from 'react-icons/bi';
 import ColorFilter from '../Filter/ColorFilter';
 import Notification from '../Notification';
-import { showInfo } from '../../utils/ToastNotification';
-import { contactsSelector } from '../../store/contacts/contactsSelectors';
+import { showError, showInfo } from '../../utils/ToastNotification';
+import { contactsSelectors } from '../../store/contacts/contactsSelectors';
+import {
+  deleteContact,
+  fetchContacts,
+} from '../../store/contacts/contactsOperations';
 import { filterSelector } from '../../store/filter/filterSelector';
 import style from './ContactList.module.css';
 
 const ContactList = () => {
   const dispatch = useDispatch();
-  const { contacts } = useSelector(contactsSelector);
+
+  const contacts = useSelector(contactsSelectors.sortedContacts);
+  const error = useSelector(contactsSelectors.errorContacts);
+  const isLoading = useSelector(contactsSelectors.isLoadingContacts);
+  // const { error, isLoading } = useSelector(rootSelector);
+
   const { nameFilter, colorFilter } = useSelector(filterSelector);
+
+  useEffect(() => {
+    dispatch(fetchContacts());
+  }, [dispatch]);
 
   const filteredContacts = contacts.filter(
     contact =>
@@ -21,9 +34,25 @@ const ContactList = () => {
   );
 
   const handleDelete = (id, name) => {
-    dispatch(deleteContactAction(id));
+    dispatch(deleteContact(id));
+    if (error) {
+      showError(`Error while deleting contact`);
+      return;
+    }
     showInfo(`Contact ${name} deleted`);
   };
+
+  if (isLoading && contacts.length === 0) {
+    return <Notification text={'Loading...'} />;
+  }
+
+  if (error) {
+    return (
+      <Notification
+        text={`Error (${error}) while loading contacts. Please try again later.`}
+      />
+    );
+  }
   return (
     <div>
       {contacts.length > 0 && <ColorFilter />}

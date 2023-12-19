@@ -1,6 +1,6 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { addContactAction } from '../../store/contacts/contactsSlice';
+
 import {
   showError,
   showSuccess,
@@ -10,12 +10,15 @@ import {
   colorPickerOptions,
   DEFAULT_COLOR,
 } from '../../constans/ColorConstans';
-import { contactsSelector } from '../../store/contacts/contactsSelectors';
+
+import { addContact } from '../../store/contacts/contactsOperations';
+import { contactsSelectors } from '../../store/contacts/contactsSelectors';
 import style from './ContactForm.module.css';
 
 export default function ContactForm() {
   const dispatch = useDispatch();
-  const { contacts } = useSelector(contactsSelector);
+  const contacts = useSelector(contactsSelectors.sortedContacts);
+  const error = useSelector(contactsSelectors.errorContacts);
 
   const handleSubmit = event => {
     event.preventDefault();
@@ -37,12 +40,18 @@ export default function ContactForm() {
     const selectedColor = color.value || DEFAULT_COLOR;
 
     dispatch(
-      addContactAction({
+      addContact({
         name: name.value,
         number: number.value,
         color: selectedColor,
       })
     );
+
+    if (error) {
+      showError('Error adding contact.');
+      return;
+    }
+
     showSuccess(`${name.value} added to contacts!`);
 
     event.target.reset();
